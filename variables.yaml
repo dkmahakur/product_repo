@@ -1,0 +1,5 @@
+---
+vmName: "myVM"
+adminUsername: "adminUser"
+adminPassword: "P@ssw0rd123!"
+vmSize: "Standard_DS1_v2"

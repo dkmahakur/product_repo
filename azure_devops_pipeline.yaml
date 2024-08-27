@@ -1,0 +1,42 @@
+trigger: none
+
+schedules:
+  - cron: "0 7 * * *"
+    displayName: Daily weekdays builds
+    branches:
+      include:
+        - main
+    always: 'true'
+
+pool:
+  name: Rabo-Linux-Production
+
+resources:
+  repositories:
+    - repository: templates
+      type: git
+      name: template_libray/infra/azure/provision_vm
+      ref: refs/heads/main
+  variables:
+    - template: variables.yaml
+
+jobs:
+
+  - job: DeployFastAPI
+    displayName: Deploy FastAPI Project
+    pool:
+      vmImage: 'ubuntu-latest'
+    steps:
+      - task: AzureCLI@2
+        inputs:
+          azureSubscription: '<Your Azure Subscription>'
+          scriptType: 'bash'
+          scriptLocation: 'inlineScript'
+          inlineScript: |
+            az vm run-command invoke --command-id RunShellScript --name $(vmName) --resource-group <Your Resource Group> --scripts "
+            sudo apt-get update
+            sudo apt-get install -y python3-pip
+            pip3 install fastapi uvicorn
+            git clone <Your FastAPI Project Repo URL> /home/$(adminUsername)/fastapi_project
+            cd /home/$(adminUsername)/fastapi_project
+            uvicorn main:app --host 0.0.0.0 --port 80 --daemon"
